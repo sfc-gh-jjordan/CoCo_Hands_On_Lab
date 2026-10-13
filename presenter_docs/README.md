@@ -94,5 +94,5 @@ These labs are small -- thousands to tens of thousands of rows on an XSMALL ware
 
 ## Links
 
-Documentation, blogs and the product page are collected in [`presenter_docs/LINKS.md`](presenter_docs/LINKS.md), and repeated on the final slide of the deck.
+Documentation, blogs and the product page are collected in [`LINKS.md`](../LINKS.md), and repeated on the final slide of the deck.
 
