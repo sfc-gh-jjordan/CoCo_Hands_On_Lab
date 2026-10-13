@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="snowflake-source" content="cortex-agent-authored" />
+  <title>Navigating Cortex Code (CoCo) Desktop</title>
+  <script type="application/json" id="snowflake-report-metadata">
+  {
+    "generated": "2026-10-13",
+    "intent": "Customer-facing guide to navigating CoCo Desktop: window panes and Skills",
+    "dataSources": [],
+    "sections": [
+      { "id": "layout", "title": "The workspace at a glance", "producerNotes": "Static content; no data sources." },
+      { "id": "file-explorer", "title": "File Explorer", "producerNotes": "Static content." },
+      { "id": "database-explorer", "title": "Database Explorer", "producerNotes": "Static content." },
+      { "id": "editor", "title": "Editor", "producerNotes": "Static content." },
+      { "id": "chat", "title": "CoCo Chat Session", "producerNotes": "Static content." },
+      { "id": "source-explorer", "title": "Source Explorer", "producerNotes": "Static content." },
+      { "id": "skills", "title": "Viewing and adding Skills", "producerNotes": "Static content." },
+      { "id": "tips", "title": "Quick tips", "producerNotes": "Static content." }
+    ]
+  }
+  </script>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --accent: light-dark(#1a6ce7, #5aa2ff);
+      --muted: light-dark(#4b5563, #9ca3af);
+      --card: light-dark(#f8fafc, #161b22);
+      --border: light-dark(#d1d5db, #30363d);
+      --pane: light-dark(#e8f0fe, #1c2a3f);
+    }
+    body {
+      font-family: -apple-system, system-ui, "Segoe UI", sans-serif;
+      max-width: 920px; width: 100%; box-sizing: border-box;
+      margin: 0 auto; padding: clamp(16px, 4vw, 28px);
+      color: light-dark(#1f2937, #e5e7eb); line-height: 1.55;
+    }
+    h1, h2, h3 { color: light-dark(#0f172a, #f1f5f9); line-height: 1.25; }
+    h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); margin-bottom: 4px; }
+    h2 { border-bottom: 2px solid var(--accent); padding-bottom: 4px; margin-top: 40px; }
+    a { color: var(--accent); }
+    .subtitle { color: var(--muted); margin-top: 0; }
+    nav.toc { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 18px; }
+    nav.toc ol { margin: 6px 0; padding-left: 20px; columns: 2 220px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin: 14px 0; }
+    .tip { border-left: 4px solid var(--accent); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+    code, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9em;
+      background: light-dark(#eef2f7, #262c36); padding: 1px 5px; border-radius: 4px; }
+    pre { background: light-dark(#eef2f7, #0d1117); border: 1px solid var(--border); border-radius: 8px;
+      padding: 12px; overflow-x: auto; }
+    /* Layout diagram */
+    .layout { display: grid; gap: 6px; grid-template-columns: 1fr 2fr 1.4fr;
+      grid-template-areas: "left editor chat" "left bottom chat"; min-height: 260px; margin: 16px 0; }
+    .pane { background: var(--pane); border: 1px solid var(--border); border-radius: 8px; padding: 10px;
+      font-size: 0.9rem; display: flex; flex-direction: column; justify-content: center; text-align: center; }
+    .pane b { display: block; color: var(--accent); }
+    .p-left { grid-area: left; } .p-editor { grid-area: editor; min-height: 150px; }
+    .p-bottom { grid-area: bottom; } .p-chat { grid-area: chat; }
+    @media (max-width: 560px) {
+      .layout { grid-template-columns: 1fr; grid-template-areas: "left" "editor" "bottom" "chat"; }
+    }
+    .table-wrap { overflow-x: auto; margin: 14px 0; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top; }
+    th { background: light-dark(#f3f4f6, #1f2937); }
+    footer { color: var(--muted); font-size: 0.85rem; margin-top: 40px; }
+  </style>
+</head>
+<body>
+
+<h1>Navigating Cortex Code (CoCo) Desktop</h1>
+<p class="subtitle">A quick-start guide to the main window panes, the AI chat, and Skills.</p>
+
+<nav class="toc">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#layout">The workspace at a glance</a></li>
+    <li><a href="#file-explorer">File Explorer</a></li>
+    <li><a href="#database-explorer">Database Explorer</a></li>
+    <li><a href="#editor">Editor</a></li>
+    <li><a href="#chat">CoCo Chat Session</a></li>
+    <li><a href="#source-explorer">Source Explorer</a></li>
+    <li><a href="#skills">Viewing and adding Skills</a></li>
+    <li><a href="#tips">Quick tips</a></li>
+  </ol>
+</nav>
+
+<h2 id="layout">1. The workspace at a glance</h2>
+<p>CoCo Desktop is an agentic IDE connected to your Snowflake account. The window is organized into panes you can show, hide, resize, and rearrange. A typical layout looks like this:</p>
+
+<div class="layout" aria-label="CoCo Desktop layout diagram">
+  <div class="pane p-left"><b>Side bar</b>File Explorer<br>Database Explorer<br>Source Explorer</div>
+  <div class="pane p-editor"><b>Editor</b>SQL, Python, notebooks, YAML, Markdown — tabbed</div>
+  <div class="pane p-bottom"><b>Panel</b>Query results &middot; Terminal &middot; Output</div>
+  <div class="pane p-chat"><b>CoCo Chat</b>Ask, plan, build, and run with the AI agent</div>
+</div>
+
+<p>The activity bar on the far left switches which explorer is shown in the side bar. Drag pane borders to resize, and drag tabs to split the editor.</p>
+
+<h2 id="file-explorer">2. File Explorer</h2>
+<p>The File Explorer shows the folder (workspace) you have open on your local machine.</p>
+<div class="grid">
+  <div class="card"><strong>Open a project</strong><br>Use <em>File &rarr; Open Folder</em> to choose a working directory. CoCo uses this folder as its context for reading and writing files.</div>
+  <div class="card"><strong>Manage files</strong><br>Create, rename, move, and delete files and folders. Right-click for context actions.</div>
+  <div class="card"><strong>Git awareness</strong><br>If the folder is a Git repository, changed files are highlighted so you can review what CoCo modified.</div>
+</div>
+<div class="card tip"><strong>Tip:</strong> Put an <code>AGENTS.md</code> file at the root of your project to give CoCo standing instructions (naming standards, "always ask before running DROP", etc.). CoCo reads it automatically.</div>
+
+<h2 id="database-explorer">3. Database Explorer</h2>
+<p>The Database Explorer is your view into the connected Snowflake account.</p>
+<ul>
+  <li><strong>Browse objects:</strong> expand databases &rarr; schemas &rarr; tables, views, stages, functions, and more.</li>
+  <li><strong>Inspect:</strong> select an object to see its columns, data types, and details.</li>
+  <li><strong>Connection context:</strong> confirm the active connection, role, and warehouse — only objects your role can access appear.</li>
+  <li><strong>Hand off to CoCo:</strong> reference an object by its fully qualified name (<code>DATABASE.SCHEMA.TABLE</code>) in chat to ground the AI's answer in that object.</li>
+</ul>
+
+<h2 id="editor">4. Editor</h2>
+<p>The Editor is the central, tabbed workspace for code.</p>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Task</th><th>How</th></tr></thead>
+  <tbody>
+    <tr><td>Write and run SQL</td><td>Open or create a <code>.sql</code> file, then run the current statement or a selection against Snowflake. Results appear in the panel below the editor.</td></tr>
+    <tr><td>Work in notebooks</td><td>Open an <code>.ipynb</code> file to mix SQL, Python, and charts cell by cell.</td></tr>
+    <tr><td>Review AI changes</td><td>When CoCo edits a file, open it in the editor to inspect the diff before you accept or commit.</td></tr>
+    <tr><td>Split view</td><td>Drag a tab to the side to compare two files, e.g. setup script and prompts.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="chat">5. CoCo Chat Session</h2>
+<p>The chat pane is where you collaborate with the CoCo agent in plain language. CoCo can explore your account, write and run SQL, edit files, and build apps — showing each step as it works.</p>
+<div class="grid">
+  <div class="card"><strong>Ask</strong><br>"What tables contain customer orders?" &middot; "Explain this query."</div>
+  <div class="card"><strong>Build</strong><br>"Create a dynamic table that aggregates daily sales." &middot; "Build a Streamlit dashboard."</div>
+  <div class="card"><strong>Fix</strong><br>"Why did this query fail?" &middot; "Optimize this warehouse's spend."</div>
+</div>
+<h3>Working effectively</h3>
+<ul>
+  <li><strong>Modes:</strong> use <em>Plan</em> mode to agree on an approach before changes, then <em>Agent</em> mode to implement.</li>
+  <li><strong>Approvals:</strong> CoCo asks permission before running commands or tools, depending on the approval mode you choose. Review SQL before approving anything destructive.</li>
+  <li><strong>Context:</strong> mention files, objects, or paste errors directly in the prompt. Be specific about database, schema, role, and warehouse.</li>
+  <li><strong>New session:</strong> start a fresh chat for an unrelated task to keep context focused.</li>
+</ul>
+
+<h2 id="source-explorer">6. Source Explorer</h2>
+<p>The Source Explorer (source control view) tracks changes in your project so you stay in control of what CoCo produces.</p>
+<ul>
+  <li>See every added, modified, or deleted file since your last commit.</li>
+  <li>Click a file to view a side-by-side diff of the changes.</li>
+  <li>Stage, discard, and commit changes — or ask CoCo in chat to "commit these changes" with a descriptive message.</li>
+</ul>
+<div class="card tip"><strong>Tip:</strong> Commit before asking CoCo for a large change. It gives you a clean checkpoint to compare against or roll back to.</div>
+
+<h2 id="skills">7. Viewing and adding Skills</h2>
+<p><strong>Skills</strong> are packaged expertise — instructions and workflows for a specific domain (for example semantic views, dynamic tables, cost analysis, Streamlit, data governance). When your request matches a skill, CoCo loads it automatically and follows its guided workflow.</p>
+
+<h3>View available skills</h3>
+<ul>
+  <li>In the chat input, type <kbd>/</kbd> or <kbd>$</kbd> to see the list of skills you can invoke, then pick one to run it directly (e.g. <code>$semantic-view</code>).</li>
+  <li>Or simply ask: <em>"What skills do you have?"</em> or <em>"Which skill helps with dynamic tables?"</em></li>
+  <li>Skills come from several sources: <strong>bundled</strong> (ship with CoCo), <strong>user / profile</strong> (your own, stored locally), <strong>stage</strong> and <strong>catalog</strong> (shared in your Snowflake account), and <strong>plugins</strong>.</li>
+</ul>
+
+<h3>Add skills</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Option</th><th>How</th></tr></thead>
+  <tbody>
+    <tr><td>Install from the catalog</td><td>Ask CoCo: <em>"Search the skill catalog for &lt;topic&gt;"</em>. It lists matching skills and plugins shared in your account and gives you an install link.</td></tr>
+    <tr><td>Create your own</td><td>Ask CoCo: <em>"Create a skill that &hellip;"</em> or <em>"Capture this session as a skill."</em> It scaffolds a <code>SKILL.md</code> with the workflow and triggers.</td></tr>
+    <tr><td>Install a plugin</td><td>Ask CoCo to install a plugin from a local folder or a Git URL. Plugins can bundle multiple skills, agents, and MCP servers.</td></tr>
+    <tr><td>Share with your team</td><td>Ask CoCo to <em>"share my skill to the catalog"</em> so others in your account can find and install it.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="tips">8. Quick tips</h2>
+<ul>
+  <li>Always confirm the active <strong>role and warehouse</strong> before running work.</li>
+  <li>Use fully qualified object names in prompts to avoid ambiguity.</li>
+  <li>Ask CoCo to write code to a file first, review it in the Editor, then execute.</li>
+  <li>Use the Source Explorer to review every change before committing.</li>
+  <li>Need help? Ask in chat: <em>"Give me a guide to CoCo features"</em>.</li>
+</ul>
+<p>Learn more in the <a href="https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code">Cortex Code documentation</a>.</p>
+
+<footer>Cortex Code (CoCo) Desktop &mdash; Navigation Guide &middot; UI labels and menus may vary slightly by version.</footer>
+
+</body>
+</html>
