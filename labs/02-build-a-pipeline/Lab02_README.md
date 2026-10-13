@@ -174,6 +174,16 @@ LIMIT 10;
 
 `staged_rows` must equal `raw_distinct_events`. If `REFRESH_ACTION` is `NO_DATA` for every table forever, check the lag pattern from Step 2.
 
+## Suspend the Dynamic Tables
+
+Run these commands so these dynamic table pipelines are in a suspended state
+
+```sql
+-- Suspend all three dynamic tables (suspend leaf first, then upstream)
+ALTER DYNAMIC TABLE DAILY_ORDER_SUMMARY SUSPEND;
+ALTER DYNAMIC TABLE STG_ORDER_LINES SUSPEND;
+ALTER DYNAMIC TABLE STG_EVENTS SUSPEND;
+
 ## What just happened
 
 You described an outcome and CoCo produced the objects. The interesting part is not the SQL generation -- it is that it inspected the data before writing anything, so its choices were driven by what the payload actually contained rather than what the field names implied.
@@ -186,14 +196,6 @@ The two mistakes it is most likely to make are both invisible at creation time. 
 - Ask it to add a data quality check that fails loudly if a future batch introduces a third timestamp format.
 - Ask for the cost profile: which layer is most expensive to refresh, and what the lag choice costs per day.
 
-## Suspend the Dynamic Tables
 
-Run these commands so these dynamic table pipelines are in a suspended state
-
-```sql
--- Suspend all three dynamic tables (suspend leaf first, then upstream)
-ALTER DYNAMIC TABLE DAILY_ORDER_SUMMARY SUSPEND;
-ALTER DYNAMIC TABLE STG_ORDER_LINES SUSPEND;
-ALTER DYNAMIC TABLE STG_EVENTS SUSPEND;
 
 

@@ -152,6 +152,16 @@ VALUES (99999, 'Broken Row', 'not-an-email', 'US', 100, CURRENT_DATE());
 
 Re-run the evaluation. The malformed count goes from 25 to 26.
 
+## Suspend the Data Metric Functions
+
+Run these commands so these DMFs are in a suspended state
+
+```sql
+-- Suspend all three dynamic tables (suspend leaf first, then upstream)
+ALTER DYNAMIC TABLE DAILY_ORDER_SUMMARY SUSPEND;
+ALTER DYNAMIC TABLE STG_ORDER_LINES SUSPEND;
+ALTER DYNAMIC TABLE STG_EVENTS SUSPEND;
+
 ## What just happened
 
 You moved from a query that answers "is this data bad today" to an object attached to the table that answers "is this data bad" continuously, with a stated expectation of what good means. The expectation is the important half. A metric on its own is a number nobody looks at; a metric with an expectation is a check that can fail.
