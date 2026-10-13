@@ -1,0 +1,64 @@
+# Local environment
+.env
+.venv/
+.python-version
+*.pem
+
+# Python
+__pycache__/
+*.pyc
+
+# Editor / OS noise
+.DS_Store
+.idea/
+*.swp
+
+# CoCo working files -- plans and local session state, not workshop content
+.snowflake/
+
+# Source logo kept in presentation/assets/ instead
+image_with_bgc*.png
+
+# Internal product-overview deck used only as a reference while writing the
+# workshop deck. It carries unreleased roadmap content and internal review
+# markers, so it must not ship in a public repo.
+Snowflake Cortex Code - Product Overview.pdf
+
+# Generated customer handoff packages. Built by tools/make_customer_handoff.py,
+# named for the customer, and rebuildable at any time from the repo plus a
+# branding file -- so there is nothing here worth committing, and what is here
+# carries customer names.
+dist/
+
+# The presenter's own copies of the deck, one folder per customer. Same reasoning
+# as dist/, and these additionally contain the speaker notes -- which is the
+# whole point of them, and exactly why they must not be committed.
+facilitator/
+
+# Presenter's own speaker notes. Kept out of the repo so the deck can be
+# committed and handed to other people without the notes going with it, and so
+# two presenters can each keep their own. presentation/speaker-notes.example.js
+# is committed and documents the format.
+presentation/speaker-notes.js
+
+# The authored form of those notes, which the studio edits and generates the .js
+# from. Same content, same reason.
+presentation/notes.json
+
+# The slide plan for whichever deck you last set up, written by the studio.
+# Generated, per-engagement, and it names the customer in its header comment.
+# presentation/slides.config.json IS committed -- that one is the default plan
+# and names nobody.
+presentation/slides.js
+
+# Archived per-engagement branding files, one per customer. Same reasoning as
+# presentation/branding.js below -- these are the customer-identifying versions,
+# kept only so a past engagement's deck can be rebuilt by copying one back over
+# presentation/branding.js.
+customers/
+
+# Per-audience branding: customer name, their logo, the curated lab set. Kept out
+# of the repo so customer-identifying material is never committed and the deck
+# you commit is never the deck you customised. branding.example.js is committed
+# and documents the format.
+presentation/branding.js

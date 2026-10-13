@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="snowflake-source" content="cortex-agent-authored" />
+<title>CoCo Workshop -- Prerequisites</title>
+
+<script type="application/json" id="snowflake-report-metadata">
+{
+  "generated": "2026-08-04",
+  "intent": "Step-by-step prerequisites for attendees of the CoCo Interactive Workshop: install a CoCo surface, install Snowflake CLI, configure account access, and enable cross-region inference. Covers macOS and Windows.",
+  "audience": "Workshop attendees and their Snowflake account administrators.",
+  "runtime": "Standalone HTML. No server, no network access, no external assets.",
+  "sections": [
+    { "id": "cross-region",
+      "title": "Enable cross-region inference",
+      "dataSources": [
+        { "type": "doc", "url": "https://docs.snowflake.com/en/user-guide/snowflake-cortex/cross-region-inference" },
+        { "type": "doc", "url": "https://docs.snowflake.com/en/release-notes/bcr-bundles/2026_06/bcr-2376" }
+      ],
+      "producerNotes": "CORTEX_ENABLED_CROSS_REGION defaults to DISABLED and CoCo cannot be used without it in most accounts. Account level only, ACCOUNTADMIN only, cannot be set by ORGADMIN or at user/session level. Verified against a live account where the value is ANY_REGION." },
+    { "id": "snow-cli",
+      "title": "Install the Snowflake CLI",
+      "dataSources": [
+        { "type": "doc", "url": "https://docs.snowflake.com/en/developer-guide/snowflake-cli/installation/installation" }
+      ],
+      "producerNotes": "Homebrew core formula, Snowflake-maintained cask, platform installers, and uv/pipx/pip. Python installs need 3.10+." }
+  ]
+}
+</script>
+
+<style>
+  :root {
+    --accent: #29B5E8;
+    --radius: 12px;
+    --speed: 160ms;
+  }
+  :root[data-theme="dark"] {
+    --bg: #0D1117; --bg-2: #161B22; --bg-3: #1C2430;
+    --fg: #E6EDF3; --fg-dim: #9DA7B3; --line: #2A3441;
+    --warn-bg: #2A1F14; --warn-line: #B7791F;
+    --ok-bg: #12241A; --ok-line: #2F855A;
+  }
+  :root[data-theme="light"] {
+    --bg: #FFFFFF; --bg-2: #F5F8FB; --bg-3: #EAF1F7;
+    --fg: #10202B; --fg-dim: #5A6B78; --line: #D3E0EA;
+    --warn-bg: #FFF8E6; --warn-line: #B7791F;
+    --ok-bg: #EEF9F1; --ok-line: #2F855A;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; line-height: 1.6;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 2rem 1.5rem 5rem; }
+
+  header.top { display: flex; align-items: center; gap: 1rem; margin-bottom: .4rem; flex-wrap: wrap; }
+  header.top img { height: 46px; image-rendering: pixelated; }
+  h1 { font-size: clamp(1.7rem, 3.6vw, 2.4rem); margin: .2rem 0 .4rem; letter-spacing: -.02em; line-height: 1.15; }
+  h2 {
+    font-size: 1.35rem; margin: 2.6rem 0 .5rem; padding-top: 1.4rem;
+    border-top: 1px solid var(--line); letter-spacing: -.01em;
+  }
+  h3 { font-size: 1.03rem; margin: 1.5rem 0 .4rem; }
+  p { margin: .6rem 0; }
+  .lede { color: var(--fg-dim); font-size: 1.05rem; max-width: 64ch; }
+  .kicker {
+    text-transform: uppercase; letter-spacing: .16em; font-size: .7rem;
+    font-weight: 700; color: var(--accent); margin: 0;
+  }
+  a { color: var(--accent); }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--bg-3); border: 1px solid var(--line);
+    padding: .1em .38em; border-radius: 5px; font-size: .87em;
+  }
+  pre {
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: .85rem 1rem; overflow-x: auto; margin: .7rem 0;
+  }
+  pre code { background: none; border: none; padding: 0; font-size: .85rem; line-height: 1.55; }
+
+  /* ---------- Copy-to-clipboard on command boxes ----------
+     The wrapper and the button are both added by script at load time, so the
+     markup above stays plain <pre><code> and still reads correctly if the
+     script never runs. The right-hand padding on the <pre> reserves room so a
+     long single-line command cannot slide underneath the button. */
+  .codewrap { position: relative; }
+  .codewrap pre { padding-right: 5.2rem; }
+  .copyBtn {
+    position: absolute; top: .5rem; right: .5rem;
+    background: var(--bg-3); color: var(--fg-dim);
+    border: 1px solid var(--line); border-radius: 6px;
+    padding: .26rem .55rem; font-family: inherit; font-size: .74rem;
+    font-weight: 600; letter-spacing: .02em; line-height: 1.2;
+    cursor: pointer; opacity: .6; transition: opacity .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .codewrap:hover .copyBtn, .copyBtn:focus-visible { opacity: 1; }
+  .copyBtn:hover { border-color: var(--accent); color: var(--accent); }
+  .copyBtn.done { border-color: var(--ok-line); color: var(--ok-line); opacity: 1; }
+
+  ol, ul { padding-left: 1.3rem; }
+  ol > li, ul > li { margin: .45rem 0; }
+
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .92rem; }
+  th, td { border: 1px solid var(--line); padding: .5rem .7rem; text-align: left; vertical-align: top; }
+  th { background: var(--bg-3); font-weight: 650; }
+
+  .card {
+    background: var(--bg-2); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 1rem 1.15rem; margin: 1rem 0;
+  }
+  .callout { border-left: 3px solid var(--accent); background: var(--bg-2); padding: .85rem 1.1rem;
+             border-radius: 0 var(--radius) var(--radius) 0; margin: 1rem 0; }
+  .warn { border-left: 3px solid var(--warn-line); background: var(--warn-bg);
+          padding: .85rem 1.1rem; border-radius: 0 var(--radius) var(--radius) 0; margin: 1rem 0; }
+  .ok   { border-left: 3px solid var(--ok-line); background: var(--ok-bg);
+          padding: .85rem 1.1rem; border-radius: 0 var(--radius) var(--radius) 0; margin: 1rem 0; }
+  .callout p:first-child, .warn p:first-child, .ok p:first-child { margin-top: 0; }
+  .callout p:last-child, .warn p:last-child, .ok p:last-child { margin-bottom: 0; }
+
+  /* OS tabs */
+  .tabs { display: flex; gap: .4rem; margin: 1rem 0 0; flex-wrap: wrap; }
+  .tab {
+    background: var(--bg-2); color: var(--fg); border: 1px solid var(--line);
+    border-radius: 8px 8px 0 0; border-bottom-color: transparent;
+    padding: .45rem .9rem; font-size: .9rem; cursor: pointer; font-family: inherit;
+  }
+  .tab[aria-selected="true"] { border-color: var(--accent); color: var(--accent); background: var(--bg-3); }
+  .panel {
+    border: 1px solid var(--line); border-radius: 0 var(--radius) var(--radius) var(--radius);
+    padding: 1rem 1.15rem; margin: 0 0 1rem; background: var(--bg-2);
+  }
+  .panel[hidden] { display: none; }
+
+  /* Checklist */
+  .check { list-style: none; padding-left: 0; }
+  .check li {
+    display: flex; gap: .6rem; align-items: flex-start; margin: .5rem 0;
+    background: var(--bg-2); border: 1px solid var(--line);
+    border-radius: 10px; padding: .6rem .8rem;
+  }
+  .check .n {
+    flex: 0 0 1.55rem; height: 1.55rem; border-radius: 50%;
+    background: var(--bg-3); border: 1px solid var(--accent); color: var(--accent);
+    font-size: .78rem; font-weight: 700; display: flex; align-items: center;
+    justify-content: center; margin-top: .12rem;
+  }
+  .check .who {
+    font-size: .68rem; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--fg-dim); display: block; margin-top: .15rem;
+  }
+  /* Uppercasing mangles command names, so opt code out of the transform. */
+  .check .who code { text-transform: none; letter-spacing: 0; font-size: .95em; }
+
+  .pill {
+    display: inline-block; font-size: .66rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; padding: .16rem .48rem; border-radius: 999px;
+    border: 1px solid var(--accent); color: var(--accent); margin-left: .45rem;
+    vertical-align: middle;
+  }
+  .pill.admin { border-color: var(--warn-line); color: var(--warn-line); }
+  .muted { color: var(--fg-dim); }
+  .small { font-size: .88rem; }
+
+  #themeBtn {
+    position: fixed; top: 1rem; right: 1rem; z-index: 20;
+    background: var(--bg-2); color: var(--fg); border: 1px solid var(--line);
+    border-radius: 8px; padding: .38rem .7rem; font-size: .82rem; cursor: pointer;
+    font-family: inherit;
+  }
+  #themeBtn:hover { border-color: var(--accent); color: var(--accent); }
+  #themeBtn { display: inline-flex; align-items: center; gap: .4rem; }
+  #themeIcon { font-size: .95rem; line-height: 1; }
+
+  @media print {
+    #themeBtn, .copyBtn { display: none; }
+    .codewrap pre { padding-right: 1rem; }
+    .panel[hidden] { display: block !important; }
+    .tabs { display: none; }
+    .panel { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<!-- The label names the mode you will get, not the one you are in, so it is
+     obvious that a light rendering is available without having to try it. -->
+<button id="themeBtn" type="button">
+  <span id="themeIcon" aria-hidden="true">&#9728;</span><span id="themeLabel">Light mode</span>
+</button>
+
+<div class="wrap">
+
+  <header class="top">
+    <img src="data:image/png;base64,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" alt="CoCo penguin" />
+    <div>
+      <p class="kicker">CoCo Interactive Workshop</p>
+      <h1>Prerequisites</h1>
+    </div>
+  </header>
+
+  <p class="lede">
+    Everything you need in place <strong>before</strong> the session, so the first lab starts on time.
+    Budget about 20 minutes. Works on macOS and Windows.
+  </p>
+
+  <div class="warn">
+    <p><strong>Do step 2 first, and do it early.</strong> Enabling cross-region inference needs an
+    account administrator and is the single most common reason CoCo does not work on the day.
+    Everything else you can do yourself in a few minutes.</p>
+  </div>
+
+  <h2 id="overview">What you are setting up</h2>
+
+  <ul class="check">
+    <li><span class="n">1</span><div><strong>A Snowflake account you can create a database in</strong>
+      <span class="who">You, or your admin</span></div></li>
+    <li><span class="n">2</span><div><strong>Cross-region inference enabled</strong> <span class="pill admin">admin</span>
+      <span class="who">ACCOUNTADMIN only -- CoCo will not run without it</span></div></li>
+    <li><span class="n">3</span><div><strong>At least one CoCo surface</strong>
+      <span class="who">Snowsight needs nothing installed and covers most labs. Desktop for the three that write files</span></div></li>
+    <li><span class="n">4</span><div><strong>Snowflake CLI (<code>snow</code>)</strong>
+      <span class="who">Used to run every lab's setup and teardown script</span></div></li>
+    <li><span class="n">5</span><div><strong>A named connection, tested</strong>
+      <span class="who">So <code>snow sql -c &lt;name&gt;</code> just works</span></div></li>
+    <li><span class="n">6</span><div><strong>The prerequisite check script, run once</strong>
+      <span class="who">Tells you which labs your account supports</span></div></li>
+  </ul>
+
+  <div class="callout">
+    <p><strong>Short on time?</strong> Steps 1, 2 and 6 are the ones that matter. With those done you can
+    run several labs entirely in the browser using CoCo in Snowsight, with nothing installed at all.</p>
+  </div>
+
+  <h2 id="account">1. Snowflake account access</h2>
+
+  <p>You need an account and a role that can create a database. Each lab builds its own database
+  named <code>COCO_HOL_LABnn_DB</code> and drops it again afterwards.</p>
+
+  <div class="callout">
+    <p><strong>Use a non-production account.</strong> The labs create real account-level objects:
+    one database per lab with sample schemas and seeded tables, a warehouse, and &mdash; depending
+    on which labs you run &mdash; dynamic tables that refresh on a schedule, data metric functions
+    that bill serverless credits until removed, and masking policies. Everything is namespaced with your
+    user name and every lab has a teardown script, so nothing is shared and nothing is permanent,
+    but a sandbox, dev or trial account is the right place to do this. So is the freedom to get things wrong.</p>
+  </div>
+
+  <p>If your organisation prefers a purpose-built role over ACCOUNTADMIN,
+  <code>admin_setup/01_coco_hol_setup.sql</code> creates one called <code>COCO_HOL_USER</code> with exactly
+  what the core labs need, and prints the <code>GRANT ROLE</code> statement to run for each attendee.
+  You do <strong>not</strong> need ACCOUNTADMIN for any lab.</p>
+
+  <p><strong>If none of your accounts are a good fit, ask your Snowflake team before you work around it.</strong>
+  Two situations come up often: your non-production account inherits production's role model, so
+  <code>CREATE DATABASE</code> and the governance privileges are not available to you; or your organisation
+  would rather attendees did not hold elevated privileges in any account it owns. In either case your
+  Snowflake sales engineer can provision <strong>temporary trial accounts</strong> for the session, in which
+  you are the administrator and everything you build is disposable. It needs about a week's notice, so
+  raise it as early as you can rather than on the day.</p>
+
+  <table>
+    <thead><tr><th>You need</th><th>Why</th><th>If you do not have it</th></tr></thead>
+    <tbody>
+      <tr><td><code>CREATE DATABASE</code> on the account</td><td>Every lab creates its own database</td>
+          <td>Ask an admin to grant it, or to pre-create the <code>COCO_HOL_*</code> databases and grant you ownership</td></tr>
+      <tr><td>A warehouse you can use</td><td>The labs create a small <code>COCO_HOL_WH</code> (XSMALL, 60s auto-suspend)</td>
+          <td>Ask for <code>CREATE WAREHOUSE</code>, or for <code>USAGE</code> on an existing one</td></tr>
+      <tr><td>The <code>SNOWFLAKE.CORTEX_USER</code> database role, and a non-zero per-surface credit limit</td>
+          <td>CoCo itself, and every lab that uses it</td>
+          <td>CoCo does not appear at all. Both are admin-side; see step 6</td></tr>
+      <tr><td><code>MONITOR USAGE</code> or ACCOUNTADMIN <span class="pill">optional</span></td>
+          <td>The cost capstone (Lab 14) reads live credit usage</td>
+          <td>Lab 14 falls back to a seeded dataset and still works</td></tr>
+      <tr><td>Enterprise Edition <span class="pill">optional</span></td>
+          <td>Data metric functions (Lab 03) and masking policies (Lab 12)</td>
+          <td>Both labs have documented Standard Edition fallbacks</td></tr>
+      <tr><td><code>CREATE AGENT</code> on the schema <span class="pill">optional</span></td>
+          <td>Lab 06 creates a Cortex agent</td>
+          <td>Skip Lab 06. Lab 05 (semantic view) is unaffected</td></tr>
+      <tr><td><code>CREATE STREAMLIT</code> on the schema <span class="pill">optional</span></td>
+          <td>Lab 10 ships a Streamlit app</td>
+          <td>Skip Lab 10</td></tr>
+      <tr><td><code>CREATE MASKING POLICY</code> on the schema, plus <code>APPLY MASKING POLICY</code>
+          on the account (or <code>APPLY</code> on the policy and ownership of the table)
+          <span class="pill">optional</span></td>
+          <td>Lab 12 attaches masking to columns it discovers</td>
+          <td>The discovery half of Lab 12 still runs; the masking half does not</td></tr>
+      <tr><td><code>EXECUTE DATA METRIC FUNCTION</code> on the account <span class="pill">optional</span></td>
+          <td>Lab 03 attaches data metric functions</td>
+          <td>Lab 03 uses its plain-SQL fallback</td></tr>
+    </tbody>
+  </table>
+
+  <p class="small muted">No Snowflake account at all? A trial works fine for every lab.
+  Sign up at <a href="https://signup.snowflake.com/">signup.snowflake.com</a>.</p>
+
+  <h2 id="cross-region">2. Enable cross-region inference <span class="pill admin">admin</span></h2>
+
+  <p><strong>This is the step that blocks people.</strong> CoCo and several Cortex features require
+  cross-region inference, and the controlling parameter is <code>DISABLED</code> by default in most
+  existing accounts. If it is off, CoCo simply cannot be used -- there is no workaround at the user level.</p>
+
+  <h3>Check the current setting</h3>
+  <p>Anyone can run this in a Snowsight worksheet:</p>
+<pre><code>SHOW PARAMETERS LIKE 'CORTEX_ENABLED_CROSS_REGION' IN ACCOUNT;</code></pre>
+
+  <p>Read the <code>value</code> column:</p>
+
+  <table>
+    <thead><tr><th>Value</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td><code>ANY_REGION</code></td><td>Broadest access and highest capacity. Nothing more to do.</td></tr>
+      <tr><td><code>AHOL_US</code>, <code>AHOL_EU</code>, <code>AZURE_US</code>, <code>AZURE_EU</code>, <code>GCP_US</code> &hellip;</td>
+          <td>Restricted to a cloud and geography. Fine for the workshop, as long as it is not <code>DISABLED</code>.</td></tr>
+      <tr><td><code>AHOL_GLOBAL</code>, <code>AZURE_GLOBAL</code>, <code>GCP_GLOBAL</code></td>
+          <td>Restricted to one cloud provider, any geography. Also fine.</td></tr>
+      <tr><td><code>DISABLED</code></td><td><strong>CoCo will not work.</strong> This needs changing before the session.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Enable it</h3>
+  <p>An <strong>ACCOUNTADMIN</strong> must run one of these. It can only be set at the account level --
+  not per user, not per session, and not by <code>ORGADMIN</code>.</p>
+
+<pre><code>-- Broadest model access and capacity (recommended for the workshop)
+ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'ANY_REGION';
+
+-- Or keep inference inside one cloud provider
+ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'AHOL_GLOBAL';
+
+-- Or keep it inside one cloud and geography
+ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'AHOL_EU';</code></pre>
+
+  <div class="callout">
+    <p><strong>What to tell your security team.</strong> Your stored data never leaves your account's region.
+    During inference the prompt and the response transit to the processing region for the duration of the
+    request and are <em>not persisted</em> there. Traffic within one cloud provider stays on that provider's
+    private backbone; across providers it uses mutually authenticated TLS. Credits are billed in your own
+    region, and there are no data egress charges.</p>
+  </div>
+
+  <p class="small muted">Some newer accounts already have this on: for organisations created in commercial
+  regions after 9 March 2026, <code>ANY_REGION</code> is the default, and a 2026_06 behaviour change sets a
+  same-cloud default for many existing commercial accounts. Check rather than assume.
+  Details: <a href="https://docs.snowflake.com/en/user-guide/snowflake-cortex/cross-region-inference">Cross-region inference</a>.</p>
+
+  <h3>While you have an admin's attention</h3>
+  <p>Two other account-level things are worth confirming in the same conversation:</p>
+  <ul>
+    <li><strong>Cortex access.</strong> The <code>SNOWFLAKE.CORTEX_USER</code> database role is granted to
+      <code>PUBLIC</code> by default. If your organisation revoked it, it needs granting back to your role.</li>
+    <li><strong>Per-surface credit limits.</strong> A user needs a non-zero daily limit as well as the role.
+      A value of <code>0</code> blocks that surface entirely:
+      <code>CORTEX_CODE_{CLI|DESKTOP|SNOWSIGHT}_DAILY_EST_CREDIT_LIMIT_PER_USER</code>.
+      The default, <code>-1</code>, means no limit.</li>
+  </ul>
+
+  <h2 id="coco">3. Install a CoCo surface</h2>
+
+  <p>You need at least one. <strong>Snowsight needs nothing installed</strong> -- if you are short on time or
+  cannot install software, that alone is the recommended surface for most of the labs. Install <strong>Desktop</strong>
+  if you want the two that write files to your machine (labs 04 and 08); it can also stand in for
+  every other lab except 13, which is specifically about CoCo inside your own IDE. The CoCo CLI is optional -- lab 11 is
+  the only lab that can use it, and Desktop's built-in terminal does the same job.</p>
+
+  <div class="tabs" role="tablist" aria-label="Operating system">
+    <button class="tab" id="tab-mac-coco" role="tab" aria-selected="true" aria-controls="panel-mac-coco" data-group="coco" data-os="mac">macOS</button>
+    <button class="tab" id="tab-win-coco" role="tab" aria-selected="false" aria-controls="panel-win-coco" data-group="coco" data-os="win">Windows</button>
+  </div>
+
+  <div class="panel" id="panel-mac-coco" role="tabpanel" aria-labelledby="tab-mac-coco" data-group="coco" data-os="mac">
+    <h3>CoCo Desktop</h3>
+    <ol>
+      <li>Download the build for your chip from the
+        <a href="https://www.snowflake.com/en/product/snowflake-coco/">CoCo product page</a> --
+        Apple silicon and Intel are separate downloads.</li>
+      <li>Open the <code>.dmg</code> and drag the app to Applications.</li>
+      <li>Launch it and sign in to Snowflake when prompted.</li>
+    </ol>
+    <h3>CoCo CLI</h3>
+<pre><code>curl -LsS https://ai.snowflake.com/static/cc-scripts/install.sh | sh</code></pre>
+    <p>Then check it:</p>
+<pre><code>cortex --version</code></pre>
+    <div class="warn">
+      <p><strong>If <code>cortex</code> is not found</strong>, the installer put it in
+      <code>~/.local/bin</code>, which may not be on your <code>PATH</code>. Either use the full path
+      <code>~/.local/bin/cortex</code>, or add it:</p>
+<pre><code>echo 'export PATH="$HOME/.local/bin:$PATH"' &gt;&gt; ~/.zshrc
+source ~/.zshrc</code></pre>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-win-coco" role="tabpanel" aria-labelledby="tab-win-coco" data-group="coco" data-os="win" hidden>
+    <h3>CoCo Desktop</h3>
+    <ol>
+      <li>Download the installer from the
+        <a href="https://www.snowflake.com/en/product/snowflake-coco/">CoCo product page</a>.
+        There are separate builds for Intel/AMD and ARM (Surface and similar), and each has a
+        <em>User</em> installer (no admin rights needed) and a <em>System</em> installer (all users).
+        Pick <strong>User</strong> unless your IT policy says otherwise.</li>
+      <li>Run the <code>.exe</code> and follow the prompts.</li>
+      <li>Launch it and sign in to Snowflake when prompted.</li>
+    </ol>
+    <h3>CoCo CLI</h3>
+    <p>In PowerShell:</p>
+<pre><code>irm https://ai.snowflake.com/static/cc-scripts/install.ps1 | iex</code></pre>
+    <p>Then close and reopen PowerShell so the <code>PATH</code> change takes effect, and check it:</p>
+<pre><code>cortex --version</code></pre>
+    <div class="warn">
+      <p><strong>If the script is blocked</strong> by execution policy, run PowerShell as your own user and
+      allow the current process only:</p>
+<pre><code>Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass</code></pre>
+      <p>That lasts for the current window only and does not change machine policy.</p>
+    </div>
+  </div>
+
+  <h3>CoCo in Snowsight -- nothing to install</h3>
+  <p>Sign in at <a href="https://app.snowflake.com/">app.snowflake.com</a>. CoCo appears inside Snowsight
+  across Workspaces and Notebooks. This is the fastest way to confirm your account is set up correctly:
+  if CoCo responds in Snowsight, steps 1 and 2 are done.</p>
+
+  <h2 id="snow-cli">4. Install the Snowflake CLI (<code>snow</code>)</h2>
+
+  <p>This is a <em>different</em> tool from the CoCo CLI. <code>snow</code> runs SQL; <code>cortex</code> is
+  the agent. Every lab uses <code>snow</code> to run its setup and teardown scripts.</p>
+
+  <div class="tabs" role="tablist" aria-label="Operating system">
+    <button class="tab" id="tab-mac-snow" role="tab" aria-selected="true" aria-controls="panel-mac-snow" data-group="snow" data-os="mac">macOS</button>
+    <button class="tab" id="tab-win-snow" role="tab" aria-selected="false" aria-controls="panel-win-snow" data-group="snow" data-os="win">Windows</button>
+  </div>
+
+  <div class="panel" id="panel-mac-snow" role="tabpanel" aria-labelledby="tab-mac-snow" data-group="snow" data-os="mac">
+    <p><strong>Homebrew</strong> is the simplest route:</p>
+<pre><code>brew install snowflake-cli</code></pre>
+    <p>That community formula updates automatically but can lag a release. For the Snowflake-maintained
+    build instead:</p>
+<pre><code>brew tap snowflakedb/snowflake-cli
+brew trust --cask snowflakedb/snowflake-cli/snowflake-cli
+brew install --cask snowflake-cli</code></pre>
+    <p>No Homebrew? Download the macOS package installer from the
+    <a href="https://docs.snowflake.com/en/developer-guide/snowflake-cli/installation/installation">installation docs</a>,
+    or install it as a Python tool (needs Python 3.10+):</p>
+<pre><code>uv tool install snowflake-cli
+# or
+pipx install snowflake-cli</code></pre>
+  </div>
+
+  <div class="panel" id="panel-win-snow" role="tabpanel" aria-labelledby="tab-win-snow" data-group="snow" data-os="win" hidden>
+    <p><strong>The Windows installer</strong> is the simplest route. Download it from the
+    <a href="https://docs.snowflake.com/en/developer-guide/snowflake-cli/installation/installation">installation docs</a>,
+    run it, then <strong>open a new terminal</strong> so the <code>PATH</code> change takes effect.</p>
+    <p>Or install it as a Python tool (needs Python 3.10+):</p>
+<pre><code>uv tool install snowflake-cli
+# or
+pipx install snowflake-cli</code></pre>
+    <p class="small muted">Works in PowerShell, Windows Terminal or Command Prompt. The lab commands are
+    identical on Windows -- only the shell prompt differs.</p>
+  </div>
+
+  <p>Confirm it works:</p>
+<pre><code>snow --version</code></pre>
+
+  <h2 id="connection">5. Create and test a connection</h2>
+
+  <p>The labs all take a <code>-c &lt;connection-name&gt;</code> argument. Create one interactively:</p>
+<pre><code>snow connection add</code></pre>
+
+  <p>You will be asked for a connection name, your account identifier, user, and how you authenticate.
+  Then test it -- do not skip this:</p>
+<pre><code>snow connection test -c &lt;your-connection-name&gt;</code></pre>
+
+  <p>A working connection prints your account, user, role and warehouse. Optionally make it the default so
+  you can drop the <code>-c</code> flag:</p>
+<pre><code>snow connection set-default &lt;your-connection-name&gt;</code></pre>
+
+  <div class="callout">
+    <p><strong>If your account requires MFA</strong>, you will be prompted on every single command, which is
+    miserable during a workshop. Enable MFA caching so you authenticate once every four hours -- see
+    <a href="https://docs.snowflake.com/en/user-guide/security-mfa">multi-factor authentication</a>.
+    Alternatively use key-pair authentication.</p>
+  </div>
+
+  <p class="small muted">Connections live in <code>~/.snowflake/config.toml</code> on macOS and
+  <code>%USERPROFILE%\.snowflake\config.toml</code> on Windows. Run <code>snow --info</code> to see the exact
+  path your installation uses.</p>
+
+  <h2 id="verify">6. Verify everything, once</h2>
+
+  <div class="callout">
+    <p><strong>This step is yours to run, and it is the one we cannot do for you.</strong> Your workshop
+    facilitator has no login in your Snowflake account, so the only way anyone finds out which labs your
+    account supports is if <em>you</em> run this check and send back the output. Please do it well before
+    the session &mdash; a few days at least, so there is time to fix anything it flags.</p>
+    <p><strong>Every attendee should run it under their own login</strong>, not just whoever administers the
+    account. Privileges belong to roles: a clean run as ACCOUNTADMIN says nothing about whether the role
+    you will actually use on the day can create a database. Paste the <strong>full output</strong> back to
+    your facilitator rather than summarising it &mdash; the detail is what determines which labs get run.</p>
+  </div>
+
+  <p>Get the workshop repository, then run the prerequisite checker. It is read-only apart from probe B5,
+  which creates a throwaway database named after your user and drops it again immediately.</p>
+
+<pre><code>git clone &lt;workshop-repo-url&gt;
+cd coco-interactive-workshop
+snow sql -f admin_setup/00_prereqs_check.sql -c &lt;your-connection-name&gt;</code></pre>
+
+  <p>The script has two parts:</p>
+  <ul>
+    <li><strong>Section A</strong> is one query that always succeeds. It prints your account, region, role
+      and whether you have ACCOUNTADMIN.</li>
+    <li><strong>Section B</strong> is five capability probes. <strong>Some of these are meant to fail</strong>
+      depending on your account -- a failure is the answer, not a bug. Run them one at a time.</li>
+  </ul>
+
+  <table>
+    <thead><tr><th>Probe</th><th>Checks</th><th>If it fails</th></tr></thead>
+    <tbody>
+      <tr><td>B1</td><td>Cortex AI functions respond</td>
+          <td>Cross-region inference is probably off, or <code>CORTEX_USER</code> was revoked. Go back to step 2. <strong>Fix this one.</strong></td></tr>
+      <tr><td>B2</td><td>Live warehouse credit usage</td><td>Lab 14 loses its live tier and uses seeded data instead.</td></tr>
+      <tr><td>B3</td><td><code>ACCOUNT_USAGE</code> access</td><td>Lab 14 cannot show what CoCo itself cost. Everything else works.</td></tr>
+      <tr><td>B4</td><td>Enterprise Edition features</td><td>Labs 03 and 12 use their documented fallbacks.</td></tr>
+      <tr><td>B5</td><td>Creating and dropping a database</td><td><strong>Nothing will run.</strong> Go back to step 1.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="ok">
+    <p><strong>You are ready when</strong> Section A prints your account, probe B1 returns
+    <code>OK</code>, and probe B5 succeeds. Everything else is optional and only narrows which labs you can
+    run.</p>
+  </div>
+
+  <h2 id="trouble">Troubleshooting</h2>
+
+  <table>
+    <thead><tr><th>Symptom</th><th>Cause and fix</th></tr></thead>
+    <tbody>
+      <tr><td>No CoCo in Snowsight, or it will not respond</td>
+          <td>Almost always cross-region inference disabled (step 2). Otherwise a per-surface credit limit
+              set to <code>0</code>, or <code>SNOWFLAKE.CORTEX_USER</code> revoked from your role.</td></tr>
+      <tr><td><code>Model "..." is unavailable</code></td>
+          <td>Cortex is reachable but that model is not available to your account or region. Enabling
+              <code>ANY_REGION</code> gives the widest selection.</td></tr>
+      <tr><td><code>cortex: command not found</code></td>
+          <td>Installed to <code>~/.local/bin</code>, not on <code>PATH</code>. See step 3.</td></tr>
+      <tr><td><code>snow: command not found</code></td>
+          <td>Open a new terminal after installing. If it persists, the Python tool path is not on
+              <code>PATH</code>.</td></tr>
+      <tr><td>Prompted for MFA on every command</td>
+          <td>Enable MFA caching, or switch to key-pair authentication. See step 5.</td></tr>
+      <tr><td><code>Insufficient privileges</code> when a lab sets up</td>
+          <td>Missing <code>CREATE DATABASE</code>. See step 1.</td></tr>
+      <tr><td><code>Invalid identifier 'INFORMATION_SCHEMA...'</code></td>
+          <td>Only appears if you hand-write a query against a table function without a database
+              qualifier. The lab scripts already handle it.</td></tr>
+      <tr><td>PowerShell blocks the install script</td>
+          <td>Set the execution policy for the current process only. See step 3.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="names">A note on the two CLIs, and on the name</h2>
+
+  <p>Two things routinely confuse people:</p>
+  <ul>
+    <li><code>snow</code> is the <strong>Snowflake CLI</strong> -- it runs SQL and manages Snowflake objects.
+      <code>cortex</code> is the <strong>CoCo CLI</strong> -- it is the agent. The labs use both, and they
+      are installed separately.</li>
+    <li><strong>CoCo was called Cortex Code</strong> until Snowflake Summit on 2 June 2026. Same product.
+      Documentation URLs, the <code>CORTEX_CODE_*</code> account parameters and the
+      <code>CORTEX_CODE_*_USAGE_HISTORY</code> views all still use the old name, so expect to see both.</li>
+  </ul>
+
+  <div class="card">
+    <h3 style="margin-top:0">Useful links</h3>
+    <ul style="margin-bottom:0">
+      <li><a href="https://www.snowflake.com/en/product/snowflake-coco/">CoCo product page and downloads</a></li>
+      <li><a href="https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code">CoCo documentation</a></li>
+      <li><a href="https://docs.snowflake.com/en/user-guide/snowflake-cortex/cross-region-inference">Cross-region inference</a></li>
+      <li><a href="https://docs.snowflake.com/en/developer-guide/snowflake-cli/installation/installation">Installing the Snowflake CLI</a></li>
+      <li><a href="https://docs.snowflake.com/en/user-guide/cortex-code/credit-usage-limit">CoCo cost controls</a></li>
+      <li><a href="https://signup.snowflake.com/">Start a Snowflake trial</a></li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+  /* ---------- Theme, guarded because storage is unavailable in some sandboxes ---------- */
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* no-op */ } }
+  };
+  const themeLabel = document.getElementById('themeLabel');
+  const themeIcon = document.getElementById('themeIcon');
+  function setTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    store.set('coco-prereq-theme', t);
+    themeLabel.textContent = t === 'dark' ? 'Light mode' : 'Dark mode';
+    themeIcon.textContent = t === 'dark' ? '\u2600' : '\u263D';
+  }
+  (function initTheme() {
+    const saved = store.get('coco-prereq-theme');
+    if (saved === 'light' || saved === 'dark') { setTheme(saved); return; }
+    const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    setTheme(prefersLight ? 'light' : 'dark');
+  })();
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  /* ---------- Copy buttons ----------
+     Every command box gets one. navigator.clipboard is tried first, with the
+     old execCommand path kept as a genuine fallback rather than a
+     feature-detect: the modern API can be present and still refuse, so the
+     fallback runs on rejection too. Only if both fail does the button admit
+     defeat and tell the reader to copy by hand. */
+  function legacyCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = !!(document.execCommand && document.execCommand('copy')); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+  function copyText(text) {
+    const viaLegacy = () =>
+      legacyCopy(text) ? Promise.resolve() : Promise.reject(new Error('copy refused'));
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(viaLegacy);
+    }
+    return viaLegacy();
+  }
+
+  document.querySelectorAll('pre').forEach(pre => {
+    const wrap = document.createElement('div');
+    wrap.className = 'codewrap';
+    pre.parentNode.insertBefore(wrap, pre);
+    wrap.appendChild(pre);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'copyBtn';
+    btn.textContent = 'Copy';
+    btn.setAttribute('aria-label', 'Copy this command to the clipboard');
+    wrap.appendChild(btn);
+
+    let reset = null;
+    btn.addEventListener('click', () => {
+      const code = pre.querySelector('code');
+      copyText((code ? code.innerText : pre.innerText).replace(/\s+$/, '')).then(
+        () => flash('Copied'),
+        () => flash('Press \u2318C')
+      );
+      function flash(msg) {
+        btn.textContent = msg;
+        btn.classList.add('done');
+        if (reset) clearTimeout(reset);
+        reset = setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('done');
+        }, 1600);
+      }
+    });
+  });
+
+  /* ---------- OS tabs ----------
+     Selecting macOS or Windows switches every tab group on the page at once,
+     so someone on Windows never has to re-pick it for each section.        */
+  const tabs = Array.from(document.querySelectorAll('.tab'));
+  const panels = Array.from(document.querySelectorAll('.panel'));
+
+  function selectOS(os) {
+    tabs.forEach(t => t.setAttribute('aria-selected', String(t.dataset.os === os)));
+    panels.forEach(p => { p.hidden = (p.dataset.os !== os); });
+    store.set('coco-prereq-os', os);
+  }
+  tabs.forEach(t => t.addEventListener('click', () => selectOS(t.dataset.os)));
+
+  /* Default to the visitor's own platform, so most people never touch the tabs. */
+  (function initOS() {
+    const saved = store.get('coco-prereq-os');
+    if (saved === 'mac' || saved === 'win') { selectOS(saved); return; }
+    const isWin = /Win/i.test(navigator.platform || navigator.userAgent || '');
+    selectOS(isWin ? 'win' : 'mac');
+  })();
+</script>
+</body>
+</html>

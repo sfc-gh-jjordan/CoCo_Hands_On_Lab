@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="snowflake-source" content="cortex-agent-authored" />
+  <title>Cortex Code (CoCo) Best Practices</title>
+  <script type="application/json" id="snowflake-report-metadata">
+  {
+    "generated": "2026-10-13",
+    "intent": "Customer-facing best practices guide for Cortex Code (CoCo): prompting, sessions, referencing objects, AGENTS.md, skills, context/token efficiency",
+    "dataSources": [],
+    "sections": [
+      { "id": "prompts", "title": "Succinct prompts & review-before-run", "dataSources": [], "producerNotes": "Static guidance." },
+      { "id": "sessions", "title": "One task per chat session", "dataSources": [], "producerNotes": "Static guidance." },
+      { "id": "referencing", "title": "Referencing files, stages and objects", "dataSources": [], "producerNotes": "Static guidance." },
+      { "id": "agents-md", "title": "AGENTS.md / project instructions", "dataSources": [], "producerNotes": "Static guidance." },
+      { "id": "skills", "title": "Skills", "dataSources": [], "producerNotes": "Static guidance." },
+      { "id": "context", "title": "Memory, context window and tokens", "dataSources": [], "producerNotes": "Static guidance." },
+      { "id": "more", "title": "Additional tips", "dataSources": [], "producerNotes": "Static guidance." },
+      { "id": "cheatsheet", "title": "Cheat sheet", "dataSources": [], "producerNotes": "Static guidance." }
+    ]
+  }
+  </script>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --sf-blue: light-dark(#11567f, #29b5e8);
+      --muted: light-dark(#4b5563, #9ca3af);
+      --card: light-dark(#f8fafc, #111827);
+      --border: light-dark(#d1d5db, #374151);
+    }
+    body {
+      font-family: -apple-system, system-ui, "Segoe UI", sans-serif;
+      max-width: 920px; width: 100%; box-sizing: border-box;
+      margin: 0 auto; padding: clamp(16px, 4vw, 32px);
+      line-height: 1.6;
+      color: light-dark(#1f2937, #e5e7eb);
+      background: light-dark(#ffffff, #0b1220);
+    }
+    h1 { color: var(--sf-blue); margin-bottom: 4px; }
+    h2 { color: var(--sf-blue); border-bottom: 2px solid var(--border); padding-bottom: 6px; margin-top: 44px; }
+    h3 { color: light-dark(#0f172a, #f1f5f9); margin-top: 24px; }
+    a { color: var(--sf-blue); }
+    .subtitle { color: var(--muted); margin-top: 0; }
+    code { background: light-dark(#eef2f7, #1f2937); padding: 1px 5px; border-radius: 4px; font-size: 0.92em; }
+    pre { background: light-dark(#f1f5f9, #111827); border: 1px solid var(--border); border-radius: 8px;
+          padding: 12px 14px; overflow-x: auto; font-size: 0.9em; line-height: 1.45; }
+    pre code { background: none; padding: 0; }
+    .toc { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 20px; }
+    .toc ol { margin: 6px 0; }
+    .callout { border-left: 4px solid var(--sf-blue); background: var(--card); padding: 10px 16px; border-radius: 6px; margin: 16px 0; }
+    .warn { border-left-color: #d97706; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; }
+    .card h4 { margin: 4px 0 6px; }
+    .good { color: light-dark(#047857, #34d399); font-weight: 600; }
+    .bad { color: light-dark(#b91c1c, #f87171); font-weight: 600; }
+    .table-wrap { overflow-x: auto; margin: 16px 0; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top; }
+    th { background: light-dark(#f3f4f6, #1f2937); }
+    footer { margin-top: 48px; color: var(--muted); font-size: 0.9em; border-top: 1px solid var(--border); padding-top: 12px; }
+  </style>
+</head>
+<body>
+
+<h1>Cortex Code (CoCo) Best Practices</h1>
+<p class="subtitle">Practical guidance for getting accurate, safe, and cost-efficient results from Snowflake Cortex Code.</p>
+
+<div class="toc">
+  <strong>Contents</strong>
+  <ol>
+    <li><a href="#prompts">Keep prompts succinct &amp; review code before running it</a></li>
+    <li><a href="#sessions">One topic or task per chat session</a></li>
+    <li><a href="#referencing">Referencing files, stages and database objects</a></li>
+    <li><a href="#agents-md">Project instructions with AGENTS.md</a></li>
+    <li><a href="#skills">Using, creating and managing skills</a></li>
+    <li><a href="#context">Memory, context window and token efficiency</a></li>
+    <li><a href="#more">Additional tips</a></li>
+    <li><a href="#cheatsheet">Cheat sheet</a></li>
+  </ol>
+</div>
+
+<!-- 1 -->
+<h2 id="prompts">1. Keep prompts succinct &amp; review code before running it</h2>
+<p>CoCo works best with a clear goal, the relevant context, and explicit constraints. Long, rambling prompts dilute intent and consume tokens; vague prompts force CoCo to guess.</p>
+
+<h3>Anatomy of a good prompt</h3>
+<ul>
+  <li><strong>Goal</strong> &ndash; what you want, in one sentence.</li>
+  <li><strong>Context</strong> &ndash; the exact table, file, stage, or object (fully qualified).</li>
+  <li><strong>Constraints</strong> &ndash; warehouse, role, naming standards, "don't modify X".</li>
+  <li><strong>Output</strong> &ndash; where the result should go (a file, a table, a chart).</li>
+</ul>
+
+<div class="grid">
+  <div class="card">
+    <h4 class="bad">Less effective</h4>
+    <p>"Can you look at my sales data and figure out what's going on and maybe fix the pipeline and also build a dashboard?"</p>
+  </div>
+  <div class="card">
+    <h4 class="good">More effective</h4>
+    <p>"Write a SQL script in <code>sql/top_customers.sql</code> that returns the top 10 customers by revenue from <code>SALES_DB.CORE.ORDERS</code> for the last 90 days. Don't run it yet."</p>
+  </div>
+</div>
+
+<h3>Always write code to a file first, then review, then run</h3>
+<p>Ask CoCo to <strong>create the code in a file for your review before executing</strong>. This gives you a checkpoint to catch wrong objects, destructive statements, or expensive queries, and leaves a reusable, version-controllable artifact.</p>
+<pre><code>Create the DDL and load script in scripts/load_customers.sql.
+Do not execute anything. I'll review it first.</code></pre>
+<p>After review:</p>
+<pre><code>Looks good. Run scripts/load_customers.sql and show me the row counts.</code></pre>
+
+<div class="callout">
+  <strong>Tips</strong>
+  <ul>
+    <li>Use <strong>Plan mode</strong> for multi-step or ambiguous work so CoCo proposes a plan you approve before it changes anything.</li>
+    <li>Keep CoCo's <strong>approval / permission mode</strong> set so that SQL execution and file writes require confirmation, especially in production accounts.</li>
+    <li>Ask CoCo to <em>compile/validate</em> SQL without executing when you only want a syntax check.</li>
+    <li>Iterate in small steps: one change, verify, next change.</li>
+  </ul>
+</div>
+
+<!-- 2 -->
+<h2 id="sessions">2. One topic or task per chat session</h2>
+<p>Every message, tool result, and query output in a chat accumulates in the model's <strong>context window</strong>. Long sessions that wander across many topics become slower, more expensive, and less accurate: older details get summarized away, and unrelated context can confuse new requests.</p>
+
+<h3>Recommended workflow</h3>
+<ol>
+  <li><strong>Start</strong> a chat for a single, well-scoped task (e.g. "build the staging tables").</li>
+  <li><strong>Save</strong> the work into files &ndash; SQL scripts, Python, notebooks, a short <code>NOTES.md</code> or README with decisions made.</li>
+  <li><strong>Review</strong> and test those files.</li>
+  <li><strong>Start a new chat</strong> for the next task, and point CoCo at the saved files instead of re-explaining history:
+    <pre><code>Read scripts/staging_tables.sql and NOTES.md. Now build the transformation
+layer on top of those staging tables in scripts/transform.sql.</code></pre>
+  </li>
+</ol>
+
+<div class="callout warn">
+  <strong>Signs it's time for a new session:</strong> you're switching topics, CoCo is repeating earlier mistakes, responses slow down, or the conversation has been summarized/compacted.
+</div>
+
+<!-- 3 -->
+<h2 id="referencing">3. Referencing files, stages and database objects</h2>
+<p>Precise references are the single biggest driver of accurate results. Be explicit rather than descriptive.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>What</th><th>How to reference it</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr><td>Local files &amp; folders</td><td>Type <code>@</code> in the chat to pick a file, or give a project-relative / absolute path</td><td><code>@sql/load.sql</code>, <code>labs/lab1/README.md</code></td></tr>
+    <tr><td>Tables / views</td><td>Fully qualified <code>DATABASE.SCHEMA.OBJECT</code></td><td><code>SALES_DB.CORE.ORDERS</code></td></tr>
+    <tr><td>Stages</td><td><code>@DB.SCHEMA.STAGE/path</code></td><td><code>@RAW_DB.LANDING.FILES_STG/2026/10/</code></td></tr>
+    <tr><td>Semantic views, agents, search services</td><td>Fully qualified name + object type</td><td>"the semantic view <code>ANALYTICS.SV.SALES_SV</code>"</td></tr>
+    <tr><td>Warehouse / role context</td><td>State them explicitly</td><td>"Use warehouse <code>COCO_WH</code> and role <code>ANALYST</code>"</td></tr>
+    <tr><td>Selected code or terminal output</td><td>Select text in the editor/terminal and ask about it, or paste the error</td><td>"Explain the error in my last terminal command"</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Navigation tips</h3>
+<ul>
+  <li>Use the <strong>Snowflake catalog/object explorer</strong> in CoCo to browse databases, schemas and objects, then copy the fully qualified name into your prompt.</li>
+  <li>If you don't know where data lives, ask CoCo to <em>search</em> first: "Find tables related to customer churn" &ndash; then pick the right one before asking for SQL.</li>
+  <li>Ask CoCo to <code>DESCRIBE</code> or sample an object before writing complex logic against it.</li>
+  <li>Reference only the files that matter. Pointing CoCo at an entire large repo wastes context; pointing it at three relevant files is fast and accurate.</li>
+  <li>Open files in the CoCo editor with <code>coco &lt;path&gt;</code> from the integrated terminal.</li>
+</ul>
+
+<!-- 4 -->
+<h2 id="agents-md">4. Project instructions with AGENTS.md</h2>
+<p>A project instructions file is a Markdown file at the root of your project that captures standards, conventions and guardrails so you don't have to repeat them in every prompt. <code>AGENTS.md</code> is the primary instruction file for Cortex Code and is loaded automatically at the start of every conversation &ndash; no need to reference it in your prompts.</p>
+
+<h3>What to include</h3>
+<ul>
+  <li><strong>Project overview</strong> &ndash; purpose, key databases/schemas, folder layout.</li>
+  <li><strong>Environment</strong> &ndash; default warehouse, role, dev vs. prod databases.</li>
+  <li><strong>Standards</strong> &ndash; naming conventions, SQL style, comment/header requirements, testing expectations.</li>
+  <li><strong>Never do</strong> &ndash; explicit guardrails.</li>
+  <li><strong>Workflow</strong> &ndash; e.g. "write code to a file and wait for approval before executing".</li>
+</ul>
+
+<h3>Example</h3>
+<pre><code># AGENTS.md
+
+## Project
+Customer analytics pipeline. Source: RAW_DB.LANDING. Target: ANALYTICS_DB.CORE.
+Folders: sql/ (DDL + DML), python/ (Snowpark), notebooks/, docs/
+
+## Environment
+- Warehouse: COCO_DEV_WH   Role: DATA_ENGINEER_DEV
+- Work only in *_DEV databases unless told otherwise.
+
+## Standards
+- Fully qualify every object: DATABASE.SCHEMA.OBJECT
+- snake_case for columns; UPPER_CASE for object names
+- Every script starts with a header comment: purpose, author, date
+- Use CREATE OR REPLACE only for views; use CREATE IF NOT EXISTS for tables
+
+## Workflow
+- Always write code to a file and wait for my review before executing.
+- Prefer small, incremental changes. Summarize what changed at the end.
+
+## Never
+- Never run DROP, TRUNCATE, or DELETE without explicit confirmation.
+- Never touch PROD databases or change grants/roles.
+- Never hard-code credentials, tokens, or keys.
+- Never use SELECT * against large tables without a LIMIT.</code></pre>
+
+<div class="callout">
+  Keep it <strong>short and specific</strong> (roughly one to two pages). Because it's loaded into context, a bloated instructions file costs tokens on every request. Check it into source control so the whole team shares the same rules.
+</div>
+
+<!-- 5 -->
+<h2 id="skills">5. Using, creating and managing skills</h2>
+<p><strong>Skills</strong> are packaged instructions (a <code>SKILL.md</code> plus optional scripts/reference files) that teach CoCo a specialized workflow. CoCo ships with many bundled skills (e.g. semantic views, Cortex Agents, dynamic tables, Streamlit, cost analysis) and loads them automatically when your request matches their description &ndash; only when needed, which keeps context lean.</p>
+
+<h3>Using skills</h3>
+<ul>
+  <li><strong>Automatic:</strong> just describe the task ("create a semantic view over ORDERS") and CoCo picks the matching skill.</li>
+  <li><strong>Explicit:</strong> invoke a skill by name with <code>/skill-name</code> (or <code>$skill-name</code>) to force a specific workflow.</li>
+  <li><strong>Discover:</strong> ask "What skills are available for X?" or browse/install from the skill catalog ("find a skill for data quality").</li>
+</ul>
+
+<h3>Creating a skill</h3>
+<p>Capture any repeatable workflow &ndash; your team's onboarding checklist, a standard pipeline pattern, a review process. The easiest path is to ask CoCo:</p>
+<pre><code>Create a skill from what we just did, called "load-landing-files",
+that loads CSVs from a stage into a RAW table using our naming standards.</code></pre>
+<p>A minimal skill looks like:</p>
+<pre><code>load-landing-files/
+  SKILL.md
+  scripts/            (optional helpers)
+  references/         (optional examples / templates)
+
+--- SKILL.md ---
+---
+name: load-landing-files
+description: Load CSV files from a landing stage into a RAW table. Use when the
+  user asks to ingest, load, or COPY files from a stage. Triggers: load files,
+  ingest CSV, copy into.
+---
+# Load Landing Files
+1. Ask for the stage path and target table if not provided.
+2. Infer the schema with INFER_SCHEMA and write DDL to sql/&lt;table&gt;_ddl.sql.
+3. Write the COPY INTO statement to sql/&lt;table&gt;_load.sql.
+4. Stop and wait for user review before executing.</code></pre>
+
+<div class="callout">
+  <strong>Write a strong <code>description</code>.</strong> It's what CoCo reads to decide whether to load the skill, so include what it does, when to use it, and trigger phrases. Keep the body focused; move long examples into reference files that are read only on demand.
+</div>
+
+<h3>Managing skills</h3>
+<ul>
+  <li><strong>Scope:</strong> skills can be personal (user-level), project-level, or shared from a stage/catalog for your organization.</li>
+  <li><strong>Share:</strong> ask CoCo to "share my skill" to publish it to your account's catalog so teammates can install it.</li>
+  <li><strong>Audit &amp; refactor:</strong> ask CoCo to "review/audit my skill" to tighten descriptions and trim oversized content.</li>
+  <li><strong>Version control:</strong> keep custom skills in Git alongside your project; update them as standards evolve.</li>
+  <li><strong>Plugins</strong> bundle multiple skills (and other components) for distribution &ndash; useful for team-wide toolkits.</li>
+</ul>
+
+<!-- 6 -->
+<h2 id="context">6. Memory, context window and token efficiency</h2>
+<p>Everything CoCo sees &ndash; your prompts, file contents, query results, tool output, instructions files, and loaded skills &ndash; consumes tokens in a finite context window. Efficient usage means faster responses, lower cost, and better accuracy.</p>
+
+<div class="grid">
+  <div class="card">
+    <h4>Limit large outputs</h4>
+    <p>Ask for <code>LIMIT 20</code>, aggregates, or row counts instead of dumping thousands of rows. Ask for summaries of long logs.</p>
+  </div>
+  <div class="card">
+    <h4>Point, don't paste</h4>
+    <p>Reference a file path rather than pasting a large file into chat; CoCo can read just the relevant portion.</p>
+  </div>
+  <div class="card">
+    <h4>Persist knowledge in files</h4>
+    <p>Decisions, standards and progress belong in <code>AGENTS.md</code>, <code>NOTES.md</code>, or scripts &ndash; not only in chat history.</p>
+  </div>
+  <div class="card">
+    <h4>Use memory deliberately</h4>
+    <p>CoCo can store persistent memories across sessions. Ask it to "remember" stable facts (preferred warehouse, coding style) and to update or remove stale ones. Keep memories short.</p>
+  </div>
+  <div class="card">
+    <h4>Scope your requests</h4>
+    <p>"Fix the join in <code>transform.sql</code> line 40" beats "review my whole project".</p>
+  </div>
+  <div class="card">
+    <h4>Choose the right tool</h4>
+    <p>Use semantic views / Cortex Analyst for business questions and catalog search for discovery instead of having CoCo scan many tables.</p>
+  </div>
+</div>
+
+<h3>Context hygiene checklist</h3>
+<ul>
+  <li>Start fresh chats per task (see section 2).</li>
+  <li>Keep <code>AGENTS.md</code> and skill files concise &ndash; they may be loaded repeatedly.</li>
+  <li>Avoid re-running the same large query; save results to a table or file and reference it.</li>
+  <li>Delegate broad exploration to sub-agents where available so the main conversation stays focused.</li>
+  <li>When a conversation is summarized, confirm key facts are captured in files before continuing.</li>
+</ul>
+
+<!-- 7 -->
+<h2 id="more">7. Additional tips</h2>
+<h3>Safety &amp; governance</h3>
+<ul>
+  <li>Use a <strong>least-privilege role</strong> and a dev database for CoCo work; CoCo acts with your Snowflake permissions.</li>
+  <li>Never paste secrets into chat. Use Snowflake secrets, key-pair auth, or environment variables.</li>
+  <li>Review every destructive or outward-facing action (DROP, GRANT, sharing, deployments) before approving.</li>
+  <li>Use a dedicated, appropriately sized warehouse with auto-suspend for CoCo sessions to control cost.</li>
+</ul>
+<h3>Quality</h3>
+<ul>
+  <li>Ask CoCo to <strong>verify its work</strong>: run tests, validate row counts, or spot-check results.</li>
+  <li>Ask "what assumptions did you make?" when results look surprising.</li>
+  <li>When CoCo is wrong, correct it specifically ("the join key is <code>CUSTOMER_ID</code>, not <code>ID</code>") rather than restating the whole request.</li>
+  <li>Use Git: commit after each reviewed, working step so you can roll back easily.</li>
+</ul>
+<h3>Productivity</h3>
+<ul>
+  <li>Use the <code>!</code> prefix to run a shell command directly in the session so its output is available to CoCo.</li>
+  <li>Ask for visualizations inline ("chart revenue by month") for quick insight before building a dashboard.</li>
+  <li>Save prompts that work well into a team prompt library or turn them into skills.</li>
+</ul>
+
+<!-- 8 -->
+<h2 id="cheatsheet">8. Cheat sheet</h2>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Do</th><th>Avoid</th></tr></thead>
+  <tbody>
+    <tr><td>One clear goal per prompt, with fully qualified objects</td><td>Multi-part, vague requests</td></tr>
+    <tr><td>"Write it to a file, don't run it yet"</td><td>Executing unreviewed code</td></tr>
+    <tr><td>New chat per task; hand off via files</td><td>One giant session for everything</td></tr>
+    <tr><td><code>@file</code> and <code>DB.SCHEMA.OBJECT</code> references</td><td>"that table we talked about"</td></tr>
+    <tr><td>Concise AGENTS.md with "Never" rules</td><td>Repeating standards in every prompt</td></tr>
+    <tr><td>Turn repeatable workflows into skills</td><td>Re-explaining the same process</td></tr>
+    <tr><td>LIMIT, aggregate, summarize outputs</td><td>Dumping huge result sets into chat</td></tr>
+    <tr><td>Least-privilege role, dev database</td><td>ACCOUNTADMIN in production</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Learn more: <a href="https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code">Cortex Code documentation</a>.</p>
+
+<footer>Cortex Code features evolve quickly &ndash; confirm specifics (file names auto-loaded, skill locations, commands) against the latest Snowflake documentation.</footer>
+
+</body>
+</html>
