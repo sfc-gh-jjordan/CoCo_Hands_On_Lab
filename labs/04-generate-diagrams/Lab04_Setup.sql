@@ -2,7 +2,7 @@
 -- Lab 04 -- Generate ER and data-flow diagrams (Desktop)
 --
 -- -- Uses COCO_HOL_LAB_DB_<you>.LAB01: a small sales schema with
- COCO_HOL_LAB_DB_<you>.LAB04: a normalised flight operations
+--  COCO_HOL_LAB_DB_<you>.LAB04: a normalised flight operations
 -- schema with real primary and foreign key constraints, plus a
 -- small transformation chain (tables -> view -> dynamic table) so
 -- there is a genuine data flow to diagram, not just a star schema.

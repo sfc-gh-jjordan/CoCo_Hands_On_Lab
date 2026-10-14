@@ -2,7 +2,7 @@
 -- Lab 02 -- Build a pipeline from a plain-English spec (Desktop)
 --
 -- -- Uses COCO_HOL_LAB_DB_<you>.LAB01: a small sales schema with
- -- COCO_HOL_LAB_DB_<you>.LAB02 with ONLY a raw landing table.
+-- COCO_HOL_LAB_DB_<you>.LAB02 with ONLY a raw landing table.
 -- The staged and curated layers are what you and CoCo build during
 -- the lab, so they are deliberately absent here.
 --

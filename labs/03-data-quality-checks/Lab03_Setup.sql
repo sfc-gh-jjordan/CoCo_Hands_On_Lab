@@ -2,7 +2,7 @@
 -- Lab 03 -- Data quality checks that persist (CoCo Desktop)
 --
 -- -- Uses COCO_HOL_LAB_DB_<you>.LAB01: a small sales schema with
- COCO_HOL_LAB_DB_<you>.LAB03.CUSTOMER_MASTER: a customer table
+--  COCO_HOL_LAB_DB_<you>.LAB03.CUSTOMER_MASTER: a customer table
 -- with a known, exact number of injected quality defects.
 --
 -- The counts are exact on purpose, so the lab README can state what
